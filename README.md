@@ -2,7 +2,7 @@
 
 # 💧 HydraAgent
 
-### Agentic AI for Smart Hydration Monitoring 🏆
+### Agentic AI for Smart Hydration Monitoring 
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -31,29 +31,30 @@ Most hydration apps just **store numbers**.
 HydraAgent does something fundamentally different — it runs an **AI agent loop**:
 
 ```
+
 ╔══════════════════════════════════════════════════════════════╗
 ║                    🤖 HydraAgent Loop                        ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║   👤 User logs intake                                        ║
+║   👤 User logs water intake                                 ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   📡 PERCEIVE — Agent receives intake_ml + user_id          ║
+║   📡 PERCEIVE — Agent receives user_id and intake_ml        ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   🧠 REASON  — LLaMA 3.1 reasons over hydration context     ║
-║         │      • How much has been consumed?                 ║
+║   🧠 REASON  — LLaMA 3.1 analyzes hydration context         ║
+║         │      • How much water has been consumed?           ║
 ║         │      • Is the daily goal being met?                ║
-║         │      • What is the best next action?               ║
+║         │      • What is the next best action?               ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   ⚡ ACT     — Agent responds with personalized guidance     ║
+║   ⚡ ACT     — Agent provides personalized guidance          ║
 ║         │      • Hydration status assessment                 ║
 ║         │      • Actionable next steps                       ║
 ║         │      • Health-aware suggestions                    ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   💾 MEMORY  — SQLite stores history for future context      ║
+║   💾 MEMORY  — SQLite stores intake history for context      ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
@@ -80,19 +81,19 @@ This **Perception → Reasoning → Action → Memory** loop is the foundation o
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                      HydraAgent System                   │
+│                      HydraAgent System                  │
 │                                                         │
-│  ┌──────────┐    ┌──────────────┐    ┌───────────────┐ │
-│  │ Frontend │───▶│   FastAPI    │───▶│ WaterIntake   │ │
-│  │Dashboard │    │   api.py     │    │   Agent 🤖    │ │
-│  │  (.html) │◀───│              │◀───│  (agent.py)   │ │
-│  └──────────┘    └──────┬───────┘    └───────┬───────┘ │
+│  ┌──────────┐    ┌──────────────┐    ┌───────────────┐  │
+│  │ Frontend │───▶│   FastAPI    │───▶│ WaterIntake  │  │
+│  │Dashboard │    │   api.py     │    │   Agent 🤖    │  │
+│  │  (.html) │◀───│              │◀───│  (agent.py)  │  │
+│  └──────────┘    └──────┬───────┘    └───────┬───────┘  │
 │                         │                    │          │
-│                  ┌──────▼───────┐    ┌───────▼───────┐ │
-│                  │   SQLite DB  │    │  Groq API     │ │
-│                  │ database.py  │    │ LLaMA 3.1 8B  │ │
-│                  │ (memory)     │    │ (reasoning)   │ │
-│                  └──────────────┘    └───────────────┘ │
+│                  ┌──────▼───────┐    ┌───────▼───────┐  │
+│                  │   SQLite DB  │    │  Groq API     │  │
+│                  │ database.py  │    │ LLaMA 3.1 8B  │  │
+│                  │ (memory)     │    │ (reasoning)   │  │
+│                  └──────────────┘    └───────────────┘  │
 │                                                         │
 │                  ┌──────────────┐                       │
 │                  │  logger.py   │  (observability)      │
