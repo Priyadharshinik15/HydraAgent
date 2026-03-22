@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HydroTrack — Water Intake Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #e8eff7;
+    --ink: #0d1f2d;
+    --ink2: #4a6274;
+    --ink3: #8fa8bc;
+    --accent: #1a6bff;
+    --accent2: #00c4b4;
+    --accent3: #ff6b35;
+    --water: #3d9be9;
+    --water-light: #b8ddf7;
+    --water-glow: rgba(61,155,233,0.18);
+    --good: #1fc87a;
+    --warn: #f5a623;
+    --danger: #e84545;
+    --radius: 20px;
+    --shadow: 0 4px 32px rgba(13,31,45,0.08), 0 1px 4px rgba(13,31,45,0.06);
+    --shadow-lg: 0 16px 64px rgba(13,31,45,0.14), 0 2px 8px rgba(13,31,45,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(61,155,233,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(0,196,180,0.09) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Layout ── */
+  .app { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  /* ── Header ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 36px;
+    animation: fadeDown .6s ease both;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo-mark {
+    width: 44px; height: 44px; background: var(--water);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 6px var(--water-glow);
+    animation: pulse 3s ease-in-out infinite;
+  }
+  .logo-mark svg { width: 22px; height: 22px; fill: #fff; }
+  .logo-text { font-family: 'DM Serif Display', serif; font-size: 1.5rem; letter-spacing: -.02em; }
+  .logo-text span { color: var(--water); }
+
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .date-chip {
+    background: var(--surface); border-radius: 100px; padding: 8px 18px;
+    font-family: 'DM Mono', monospace; font-size: .78rem; color: var(--ink2);
+    box-shadow: var(--shadow); letter-spacing: .03em;
+  }
+  .user-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--water) 0%, var(--accent2) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif; font-size: 1rem; color: #fff;
+    cursor: pointer; box-shadow: var(--shadow);
+    transition: transform .2s;
+  }
+  .user-avatar:hover { transform: scale(1.08); }
+
+  /* ── Grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    position: relative;
+  }
+  .card-inner { padding: 28px; }
+
+  /* ── Hero / Log Card ── */
+  .card-hero {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    background: linear-gradient(160deg, #0d2d4a 0%, #0f3d60 50%, #0d4a6a 100%);
+    color: #fff;
+    animation: fadeUp .7s .1s ease both;
+  }
+  .card-hero .card-inner { padding: 32px; }
+
+  .hero-label {
+    font-family: 'DM Mono', monospace; font-size: .72rem;
+    letter-spacing: .12em; color: var(--water-light); text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  /* Wave + droplet visualization */
+  .wave-container {
+    position: relative; height: 210px; margin: 0 -32px;
+    background: rgba(61,155,233,0.08);
+    overflow: hidden; border-radius: 0;
+  }
+  .wave-fill {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    transition: height 1.2s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+  }
+  .wave-fill::before {
+    content: '';
+    position: absolute; top: -20px; left: -50%; right: -50%;
+    height: 40px;
+    background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(61,155,233,.4) 0%, transparent 70%);
+    animation: wave 2.6s linear infinite;
+  }
+  .wave-fill::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(61,155,233,.7) 0%, rgba(29,100,195,.9) 100%);
+  }
+  .wave-pct {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-family: 'DM Serif Display', serif; font-size: 3.5rem;
+    color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,.3); z-index: 2;
+    letter-spacing: -.04em;
+  }
+  .wave-pct small { font-size: 1.2rem; vertical-align: middle; opacity: .8; }
+
+  .hero-stats { display: flex; gap: 0; margin: 24px 0; }
+  .hstat {
+    flex: 1; padding: 16px 0;
+    border-right: 1px solid rgba(255,255,255,.1);
+  }
+  .hstat:last-child { border-right: none; padding-left: 20px; }
+  .hstat:first-child { padding-right: 20px; }
+  .hstat-val { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: #fff; }
+  .hstat-val span { font-size: .9rem; color: var(--water-light); }
+  .hstat-label { font-family: 'DM Mono', monospace; font-size: .68rem; color: rgba(255,255,255,.5); letter-spacing: .08em; margin-top: 2px; text-transform: uppercase; }
+
+  /* Log form */
+  .log-form { margin-top: 24px; }
+  .log-form label { font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .1em; color: rgba(255,255,255,.5); text-transform: uppercase; display: block; margin-bottom: 10px; }
+  .input-row { display: flex; gap: 10px; align-items: stretch; }
+  .log-input {
+    flex: 1; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    border-radius: 12px; padding: 14px 18px;
+    font-family: 'DM Mono', monospace; font-size: 1rem; color: #fff;
+    outline: none; transition: border-color .2s, background .2s;
+    -moz-appearance: textfield;
+  }
+  .log-input::placeholder { color: rgba(255,255,255,.3); }
+  .log-input:focus { border-color: var(--water); background: rgba(61,155,233,.15); }
+  .log-input::-webkit-outer-spin-button, .log-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .log-btn {
+    background: var(--water); color: #fff; border: none; border-radius: 12px;
+    padding: 14px 22px; font-family: 'Instrument Sans', sans-serif;
+    font-size: .9rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    box-shadow: 0 4px 20px rgba(61,155,233,.4);
+  }
+  .log-btn:hover { background: #2a8fe4; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(61,155,233,.5); }
+  .log-btn:active { transform: translateY(0); }
+
+  .quick-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .quick-btn {
+    flex: 1; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px; padding: 10px 0; color: rgba(255,255,255,.7);
+    font-family: 'DM Mono', monospace; font-size: .78rem; cursor: pointer;
+    transition: background .2s, color .2s; text-align: center;
+  }
+  .quick-btn:hover { background: rgba(61,155,233,.25); color: #fff; border-color: var(--water); }
+
+  /* ── Status Card ── */
+  .card-status {
+    grid-column: 2;
+    grid-row: 1;
+    animation: fadeUp .7s .2s ease both;
+  }
+  .status-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .card-title { font-family: 'DM Serif Display', serif; font-size: 1.3rem; }
+  .status-badge {
+    padding: 6px 14px; border-radius: 100px; font-size: .75rem;
+    font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: .04em;
+  }
+  .badge-good { background: rgba(31,200,122,.12); color: var(--good); }
+  .badge-warn { background: rgba(245,166,35,.12); color: var(--warn); }
+  .badge-danger { background: rgba(232,69,69,.12); color: var(--danger); }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .metric {
+    background: var(--surface2); border-radius: 14px; padding: 16px;
+    position: relative; overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .metric:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(13,31,45,.1); }
+  .metric::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent-color, var(--water));
+    border-radius: 3px 3px 0 0;
+  }
+  .metric-icon { font-size: 1.4rem; margin-bottom: 8px; }
+  .metric-val { font-family: 'DM Serif Display', serif; font-size: 1.6rem; }
+  .metric-label { font-size: .72rem; color: var(--ink2); font-family: 'DM Mono', monospace; letter-spacing: .04em; margin-top: 2px; }
+
+  /* ── AI Analysis Card ── */
+  .card-ai {
+    grid-column: 2;
+    grid-row: 2;
+    animation: fadeUp .7s .3s ease both;
+  }
+  .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .ai-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent2);
+    box-shadow: 0 0 0 4px rgba(0,196,180,.2);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .ai-label { font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .1em; color: var(--ink2); text-transform: uppercase; }
+  .ai-content {
+    background: linear-gradient(135deg, #f5faff 0%, #edf6ff 100%);
+    border: 1px solid rgba(61,155,233,.15);
+    border-radius: 14px; padding: 18px;
+    font-size: .9rem; line-height: 1.7; color: var(--ink2);
+    min-height: 80px; position: relative;
+  }
+  .ai-loading { display: flex; gap: 6px; align-items: center; }
+  .ai-loading span {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--water);
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .ai-loading span:nth-child(2) { animation-delay: .15s; }
+  .ai-loading span:nth-child(3) { animation-delay: .3s; }
+
+  /* ── History Card ── */
+  .card-history {
+    grid-column: 1 / 3;
+    grid-row: 3;
+    animation: fadeUp .7s .4s ease both;
+  }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .history-tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 10px; padding: 4px; }
+  .tab {
+    padding: 7px 16px; border-radius: 7px; font-size: .82rem; cursor: pointer;
+    font-family: 'DM Mono', monospace; transition: background .2s, color .2s;
+    color: var(--ink2); border: none; background: none;
+  }
+  .tab.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+
+  /* Bar Chart */
+  .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 160px; padding: 8px 0; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+  .bar {
+    width: 100%; border-radius: 8px 8px 0 0;
+    background: linear-gradient(180deg, var(--water) 0%, #1a5fa8 100%);
+    min-height: 6px;
+    transition: height 1s cubic-bezier(.4,0,.2,1);
+    position: relative; cursor: pointer;
+    box-shadow: 0 -2px 8px rgba(61,155,233,.3);
+  }
+  .bar.today {
+    background: linear-gradient(180deg, var(--accent2) 0%, #007a72 100%);
+    box-shadow: 0 -2px 12px rgba(0,196,180,.4);
+  }
+  .bar:hover::after {
+    content: attr(data-val);
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; border-radius: 6px; padding: 4px 10px;
+    font-family: 'DM Mono', monospace; font-size: .72rem; white-space: nowrap;
+    pointer-events: none; z-index: 10;
+  }
+  .bar-day { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--ink3); }
+  .bar-day.today { color: var(--accent2); font-weight: 500; }
+
+  /* History List */
+  .history-list { display: none; }
+  .history-list.visible { display: flex; flex-direction: column; gap: 10px; }
+  .history-item {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 18px; background: var(--surface2); border-radius: 12px;
+    transition: background .2s;
+  }
+  .history-item:hover { background: #ddeaf5; }
+  .hi-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--water); flex-shrink: 0; }
+  .hi-date { font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--ink2); min-width: 100px; }
+  .hi-bar { flex: 1; height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+  .hi-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--water), var(--accent2)); transition: width 1s ease; }
+  .hi-val { font-family: 'DM Mono', monospace; font-size: .85rem; font-weight: 500; min-width: 70px; text-align: right; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 32px; right: 32px;
+    background: var(--ink); color: #fff; border-radius: 14px;
+    padding: 14px 22px; font-size: .88rem;
+    box-shadow: var(--shadow-lg); z-index: 999;
+    display: flex; align-items: center; gap: 10px;
+    transform: translateY(80px); opacity: 0;
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-icon { font-size: 1.1rem; }
+
+  /* ── User ID input ── */
+  .userid-row { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .userid-label { font-family: 'DM Mono', monospace; font-size: .72rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .1em; white-space: nowrap; }
+  .userid-input {
+    flex: 1; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px; padding: 9px 14px;
+    font-family: 'DM Mono', monospace; font-size: .82rem; color: #fff; outline: none;
+    transition: border-color .2s;
+  }
+  .userid-input:focus { border-color: var(--water); }
+
+  /* ── Animations ── */
+  /* ── Period Summary Strip ── */
+  .period-summary { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+  .ps-chip { background:var(--surface2); border-radius:12px; padding:10px 18px; display:flex; flex-direction:column; gap:2px; flex:1; min-width:110px; }
+  .ps-val { font-family:'DM Serif Display',serif; font-size:1.3rem; }
+  .ps-label { font-family:'DM Mono',monospace; font-size:.68rem; color:var(--ink3); text-transform:uppercase; letter-spacing:.06em; }
+
+  @keyframes fadeDown { from { opacity:0; transform: translateY(-16px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--water-glow); } 50% { box-shadow: 0 0 0 10px transparent; } }
+  @keyframes wave { 0% { transform: translateX(0); } 100% { transform: translateX(50%); } }
+  @keyframes bounce { 0%,80%,100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+  /* ── Responsive ── */
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+    .card-hero { grid-row: auto; }
+    .card-status, .card-ai, .card-history { grid-column: 1; grid-row: auto; }
+    .metrics-grid { grid-template-columns: repeat(3,1fr); }
+  }
+  @media (max-width: 520px) {
+    .metrics-grid { grid-template-columns: repeat(2,1fr); }
+    .bar-chart { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2C12 2 5 9.5 5 14a7 7 0 0014 0C19 9.5 12 2 12 2z"/></svg>
+      </div>
+      <div class="logo-text">Hydro<span>Track</span></div>
+    </div>
+    <div class="header-right">
+      <div class="date-chip" id="datechip"></div>
+      <div class="user-avatar" title="Profile">A</div>
+    </div>
+  </header>
+
+  <!-- Grid -->
+  <div class="grid">
+
+    <!-- Hero / Log Card -->
+    <div class="card card-hero">
+      <div class="card-inner">
+        <div class="hero-label">Daily Hydration</div>
+
+        <div class="userid-row">
+          <span class="userid-label">User ID</span>
+          <input class="userid-input" id="userId" type="text" placeholder="e.g. user_01" value="user_01"/>
+        </div>
+
+        <!-- Wave visual -->
+        <div class="wave-container">
+          <div class="wave-fill" id="waveFill" style="height:0%">
+            <div class="wave-pct" id="wavePct">0<small>%</small></div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="hero-stats">
+          <div class="hstat">
+            <div class="hstat-val"><span id="intakeVal">0</span> <span>ml</span></div>
+            <div class="hstat-label">Consumed</div>
+          </div>
+          <div class="hstat">
+            <div class="hstat-val"><span id="goalVal">2500</span> <span>ml</span></div>
+            <div class="hstat-label">Daily Goal</div>
+          </div>
+        </div>
+
+        <!-- Log form -->
+        <div class="log-form">
+          <label>Log Water Intake (ml)</label>
+          <div class="input-row">
+            <input class="log-input" id="intakeInput" type="number" placeholder="250" min="1" max="5000"/>
+            <button class="log-btn" id="logBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Log
+            </button>
+          </div>
+          <div class="quick-btns">
+            <div class="quick-btn" data-ml="150">☕ 150</div>
+            <div class="quick-btn" data-ml="250">🥤 250</div>
+            <div class="quick-btn" data-ml="500">🍶 500</div>
+            <div class="quick-btn" data-ml="750">💧 750</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Card -->
+    <div class="card card-status">
+      <div class="card-inner">
+        <div class="status-header">
+          <div class="card-title">Today's Overview</div>
+          <div class="status-badge badge-warn" id="statusBadge">Getting There</div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric" style="--accent-color: var(--water)">
+            <div class="metric-icon">💧</div>
+            <div class="metric-val" id="m-intake">0 ml</div>
+            <div class="metric-label">Total Intake</div>
+          </div>
+          <div class="metric" style="--accent-color: var(--accent2)">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-val" id="m-remaining">2500 ml</div>
+            <div class="metric-label">Remaining</div>
+          </div>
+          <div class="metric" style="--accent-color: var(--accent3)">
+            <div class="metric-icon">📈</div>
+            <div class="metric-val" id="m-sessions">0</div>
+            <div class="metric-label">Sessions</div>
+          </div>
+          <div class="metric" style="--accent-color: var(--good)">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-val" id="m-avg">—</div>
+            <div class="metric-label">Avg / Session</div>
+          </div>
+          <div class="metric" style="--accent-color: var(--warn)">
+            <div class="metric-icon">🏆</div>
+            <div class="metric-val" id="m-streak">0 days</div>
+            <div class="metric-label">Streak</div>
+          </div>
+          <div class="metric" style="--accent-color: var(--accent)">
+            <div class="metric-icon">💡</div>
+            <div class="metric-val" id="m-pct">0%</div>
+            <div class="metric-label">Goal %</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Analysis Card -->
+    <div class="card card-ai">
+      <div class="card-inner">
+        <div class="ai-header">
+          <div class="ai-dot"></div>
+          <div class="ai-label">AI Hydration Insights</div>
+        </div>
+        <div class="ai-content" id="aiContent">
+          <div style="color: var(--ink3); font-family: 'DM Mono', monospace; font-size:.82rem;">
+            Log some water to receive personalised AI analysis of your hydration status.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Card -->
+    <div class="card card-history">
+      <div class="card-inner">
+        <div class="history-header">
+          <div class="card-title">Intake History</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <!-- Period selector -->
+            <div class="history-tabs" id="periodTabs">
+              <button class="tab active" onclick="switchPeriod('week')">Week</button>
+              <button class="tab" onclick="switchPeriod('month')">Month</button>
+              <button class="tab" onclick="switchPeriod('year')">Year</button>
+            </div>
+            <!-- View selector -->
+            <div class="history-tabs">
+              <button class="tab active" id="tabChart" onclick="switchTab('chart')">Chart</button>
+              <button class="tab" id="tabList" onclick="switchTab('list')">Log</button>
+            </div>
+          </div>
+        </div>
+        <!-- Period summary strip -->
+        <div class="period-summary" id="periodSummary"></div>
+        <div id="chartView">
+          <div class="bar-chart" id="barChart"></div>
+        </div>
+        <div class="history-list" id="listView"></div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+</div><!-- /app -->
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon">💧</span>
+  <span id="toastMsg">Intake logged!</span>
+</div>
+
+<script>
+// ── State ──
+const GOAL = 2500;
+let sessions = JSON.parse(localStorage.getItem('ht_sessions') || '[]');
+let currentPeriod = 'week'; // 'week' | 'month' | 'year'
+let currentTab = 'chart';
+
+// ── Date ──
+const now = new Date();
+const dateStr = now.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'short', year:'numeric' });
+document.getElementById('datechip').textContent = dateStr;
+const todayKey = now.toISOString().slice(0,10);
+
+// ── Helpers ──
+function todaySessions() { return sessions.filter(s => s.date === todayKey); }
+function todayTotal() { return todaySessions().reduce((a,s) => a + s.ml, 0); }
+function formatDate(d) { return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
+function dateKey(d) { return d.toISOString().slice(0,10); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Period date ranges ──
+function getPeriodDays() {
+  const days = [];
+  if (currentPeriod === 'week') {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now); d.setDate(d.getDate() - i);
+      days.push(dateKey(d));
+    }
+  } else if (currentPeriod === 'month') {
+    const year = now.getFullYear(), month = now.getMonth();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(`${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`);
+    }
+  } else { // year — group by month
+    const year = now.getFullYear();
+    for (let m = 0; m < 12; m++) {
+      days.push(`${year}-${String(m+1).padStart(2,'0')}`); // YYYY-MM keys
+    }
+  }
+  return days;
+}
+
+function dayTotal(key) {
+  if (currentPeriod === 'year') {
+    return sessions.filter(s => s.date.startsWith(key)).reduce((a,s)=>a+s.ml,0);
+  }
+  return sessions.filter(s => s.date === key).reduce((a,s)=>a+s.ml,0);
+}
+
+function getDayLabel(key) {
+  if (currentPeriod === 'week') {
+    if (key === todayKey) return 'Today';
+    return new Date(key+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short'});
+  }
+  if (currentPeriod === 'month') {
+    return new Date(key+'T00:00:00').getDate().toString();
+  }
+  // year: month names
+  const [,m] = key.split('-');
+  return new Date(2000, parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short'});
+}
+
+// ── Period Summary ──
+function renderPeriodSummary() {
+  const days = getPeriodDays();
+  const totals = days.map(d => dayTotal(d));
+  const grandTotal = totals.reduce((a,v)=>a+v,0);
+
+  let goalDays, avgLabel;
+  if (currentPeriod === 'year') {
+    goalDays = days.filter((_,i) => totals[i] >= GOAL * 28).length; // rough monthly goal
+    avgLabel = 'Avg / Month';
+  } else {
+    goalDays = totals.filter(v => v >= GOAL).length;
+    avgLabel = 'Avg / Day';
+  }
+  const avg = days.length ? Math.round(grandTotal / days.length) : 0;
+  const best = Math.max(...totals, 0);
+  const label = currentPeriod === 'year' ? 'This Year' : currentPeriod === 'month' ? 'This Month' : 'This Week';
+
+  document.getElementById('periodSummary').innerHTML = `
+    <div class="ps-chip"><div class="ps-val">${(grandTotal/1000).toFixed(1)}L</div><div class="ps-label">${label}</div></div>
+    <div class="ps-chip"><div class="ps-val">${avg} ml</div><div class="ps-label">${avgLabel}</div></div>
+    <div class="ps-chip"><div class="ps-val">${best} ml</div><div class="ps-label">Best Day</div></div>
+    ${currentPeriod !== 'year' ? `<div class="ps-chip"><div class="ps-val">${goalDays}/${days.length}</div><div class="ps-label">Goal Days</div></div>` : ''}
+  `;
+}
+
+// ── Chart ──
+function renderChart() {
+  const chart = document.getElementById('barChart');
+  chart.innerHTML = '';
+  const days = getPeriodDays();
+  const totals = days.map(d => dayTotal(d));
+  const barGoal = currentPeriod === 'year' ? GOAL * 28 : GOAL;
+  const max = Math.max(barGoal, ...totals, 1);
+
+  days.forEach((d, i) => {
+    const total = totals[i];
+    const h = Math.max(total > 0 ? 6 : 2, Math.round(total / max * 140));
+    const isTod = d === todayKey;
+    const isGoal = total >= (currentPeriod === 'year' ? GOAL * 28 : GOAL);
+    const label = getDayLabel(d);
+
+    // For month view with many bars, skip every other label
+    const showLabel = currentPeriod === 'month' ? (i % 5 === 0 || i === days.length-1) : true;
+
+    const col = document.createElement('div'); col.className = 'bar-col';
+    col.innerHTML = `
+      <div class="bar-wrap">
+        <div class="bar${isTod?' today':''}${isGoal&&!isTod?' goal-bar':''}" style="height:${h}px" data-val="${total >= 1000 ? (total/1000).toFixed(1)+'L' : total+'ml'}"></div>
+      </div>
+      <div class="bar-day${isTod?' today':''}" style="${!showLabel?'visibility:hidden':''}">${label}</div>
+    `;
+    chart.appendChild(col);
+  });
+  renderPeriodSummary();
+}
+
+// ── List ──
+function renderList() {
+  const list = document.getElementById('listView');
+  const days = getPeriodDays();
+
+  if (currentPeriod === 'year') {
+    // Monthly grouped totals
+    const rows = days.map(key => {
+      const total = dayTotal(key);
+      const [,m] = key.split('-');
+      const monthName = new Date(2000,parseInt(m)-1,1).toLocaleDateString('en-GB',{month:'long'});
+      const w = Math.min(100, Math.round(total / (GOAL*28) * 100));
+      return { label: monthName, total, w };
+    }).filter(r => r.total > 0).reverse();
+
+    if (!rows.length) { list.innerHTML = emptyMsg(); return; }
+    list.innerHTML = rows.map(r => historyRow(r.label, r.total, r.w)).join('');
+    return;
+  }
+
+  // Week / Month: show individual sessions grouped by day
+  const relevantKeys = new Set(days);
+  const relevant = sessions.filter(s => relevantKeys.has(s.date));
+  const sorted = [...relevant].sort((a,b) => b.date > a.date ? 1 : b.date < a.date ? -1 : b.id - a.id);
+
+  if (!sorted.length) { list.innerHTML = emptyMsg(); return; }
+
+  // Group by date
+  const grouped = {};
+  sorted.forEach(s => { (grouped[s.date] = grouped[s.date]||[]).push(s); });
+  const groupedKeys = Object.keys(grouped).sort((a,b) => b > a ? 1 : -1);
+
+  list.innerHTML = groupedKeys.map(date => {
+    const dayTot = grouped[date].reduce((a,s)=>a+s.ml,0);
+    const w = Math.min(100, Math.round(dayTot / GOAL * 100));
+    const dateLabel = date === todayKey ? 'Today' : formatDate(date);
+    const sessions_html = grouped[date].map(s => `
+      <div style="display:flex;align-items:center;gap:12px;padding:8px 0 0 0;border-top:1px solid var(--surface)">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--water-light);flex-shrink:0"></div>
+        <div style="font-family:DM Mono,monospace;font-size:.75rem;color:var(--ink3);flex:1">session</div>
+        <div style="font-family:DM Mono,monospace;font-size:.8rem;font-weight:500">${s.ml} ml</div>
+      </div>`).join('');
+    return `<div class="history-item" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="hi-dot" style="${dayTot>=GOAL?'background:var(--good)':''}"></div>
+        <div class="hi-date" style="font-weight:600;color:var(--ink)">${dateLabel}</div>
+        <div class="hi-bar"><div class="hi-fill" style="width:${w}%"></div></div>
+        <div class="hi-val">${dayTot} ml</div>
+      </div>
+      ${grouped[date].length > 1 ? sessions_html : ''}
+    </div>`;
+  }).join('');
+}
+
+function emptyMsg() { return '<div style="color:var(--ink3);font-family:DM Mono,monospace;font-size:.82rem;padding:12px 0">No entries for this period yet.</div>'; }
+function historyRow(label, total, w) {
+  return `<div class="history-item">
+    <div class="hi-dot"></div>
+    <div class="hi-date">${label}</div>
+    <div class="hi-bar"><div class="hi-fill" style="width:${w}%"></div></div>
+    <div class="hi-val">${total >= 1000 ? (total/1000).toFixed(1)+'L' : total+' ml'}</div>
+  </div>`;
+}
+
+// ── Update UI ──
+function updateUI() {
+  const total = todayTotal();
+  const pct = Math.min(100, Math.round(total / GOAL * 100));
+  const remaining = Math.max(0, GOAL - total);
+  const sess = todaySessions();
+  const avgml = sess.length ? Math.round(total / sess.length) : 0;
+
+  document.getElementById('waveFill').style.height = pct + '%';
+  document.getElementById('wavePct').innerHTML = pct + '<small>%</small>';
+  document.getElementById('intakeVal').textContent = total;
+  document.getElementById('m-intake').textContent = total + ' ml';
+  document.getElementById('m-remaining').textContent = remaining + ' ml';
+  document.getElementById('m-sessions').textContent = sess.length;
+  document.getElementById('m-avg').textContent = avgml ? avgml + ' ml' : '—';
+  document.getElementById('m-pct').textContent = pct + '%';
+
+  const streak = calcStreak();
+  document.getElementById('m-streak').textContent = streak + ' day' + (streak !== 1 ? 's' : '');
+
+  const badge = document.getElementById('statusBadge');
+  if (pct >= 100) { badge.textContent = 'Goal Reached! 🎉'; badge.className = 'status-badge badge-good'; }
+  else if (pct >= 60) { badge.textContent = 'Getting There'; badge.className = 'status-badge badge-warn'; }
+  else { badge.textContent = 'Needs Attention'; badge.className = 'status-badge badge-danger'; }
+
+  renderChart();
+  renderList();
+}
+
+function calcStreak() {
+  let streak = 0;
+  const d = new Date(now);
+  while (true) {
+    const key = dateKey(d);
+    const dt = sessions.filter(s => s.date === key).reduce((a,s)=>a+s.ml,0);
+    if (dt >= GOAL) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+// ── Period Switch ──
+function switchPeriod(p) {
+  currentPeriod = p;
+  document.querySelectorAll('#periodTabs .tab').forEach((btn,i) => {
+    btn.classList.toggle('active', ['week','month','year'][i] === p);
+  });
+  renderChart();
+  renderList();
+}
+
+// ── Tab Switch ──
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabChart').classList.toggle('active', tab === 'chart');
+  document.getElementById('tabList').classList.toggle('active', tab === 'list');
+  document.getElementById('chartView').style.display = tab === 'chart' ? '' : 'none';
+  const lv = document.getElementById('listView');
+  lv.classList.toggle('visible', tab === 'list');
+  if (tab === 'list') renderList();
+}
+
+// ── Log Intake ──
+async function logIntake(ml) {
+  const userId = document.getElementById('userId').value.trim() || 'user_01';
+  sessions.push({ id: Date.now(), date: todayKey, ml, userId });
+  localStorage.setItem('ht_sessions', JSON.stringify(sessions));
+  updateUI();
+  showToast(`+${ml} ml logged successfully`);
+
+  const aiEl = document.getElementById('aiContent');
+  aiEl.innerHTML = '<div class="ai-loading"><span></span><span></span><span></span></div>';
+
+  try {
+    const resp = await fetch('/log-intake', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, intake_ml: ml })
+    });
+    if (resp.ok) { const data = await resp.json(); aiEl.textContent = data.analysis || 'Analysis complete.'; }
+    else { throw new Error(); }
+  } catch {
+    aiEl.innerHTML = '<div class="ai-loading"><span></span><span></span><span></span></div>';
+    const total = todayTotal();
+    const pct = Math.round(total / GOAL * 100);
+    setTimeout(() => {
+      if (pct >= 100) aiEl.textContent = `🎉 Outstanding! You've hit your 2,500 ml goal for today. Your body is fully hydrated — keep it up tomorrow!`;
+      else if (pct >= 75) aiEl.textContent = `💪 Great progress! You're at ${pct}% of your daily goal. Just ${GOAL - total} ml left. Try a glass before dinner.`;
+      else if (pct >= 50) aiEl.textContent = `🌊 Halfway there! You've had ${total} ml. Aim for another glass every 90 minutes to stay on track.`;
+      else if (pct >= 25) aiEl.textContent = `⚡ You've started well with ${total} ml, but there's more ground to cover. Set a reminder every hour.`;
+      else aiEl.textContent = `🚨 Only ${total} ml so far — try to drink ${Math.round((GOAL - total) / 4)} ml every hour to catch up.`;
+    }, 1400);
+  }
+}
+
+// ── Event Listeners ──
+document.getElementById('logBtn').addEventListener('click', () => {
+  const v = parseInt(document.getElementById('intakeInput').value);
+  if (!v || v < 1 || v > 5000) { showToast('Please enter a valid amount (1–5000 ml)'); return; }
+  logIntake(v); document.getElementById('intakeInput').value = '';
+});
+document.getElementById('intakeInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('logBtn').click(); });
+document.querySelectorAll('.quick-btn').forEach(btn => { btn.addEventListener('click', () => logIntake(parseInt(btn.dataset.ml))); });
+
+// ── Init ──
+updateUI();
+</script>
+</body>
+</html>

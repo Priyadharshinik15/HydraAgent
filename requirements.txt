@@ -1,0 +1,36 @@
+# LLM
+langchain==0.1.12
+openai==1.14.1
+llama-index==0.10.30
+langchain-openai==0.0.8
+
+# API 
+
+fastapi==0.109.2
+uvicorn==0.27.0.post1
+
+# Database
+sqlalchemy==2.0.27
+sqlite-utils==3.35
+aiosqlite==0.19.0
+
+# Config
+python-dotenv==1.0.1
+
+# Logging
+loguru==0.7.2
+
+# Scheduler (water reminders)
+apscheduler==3.10.4
+
+# CLI
+typer==0.9.0
+
+# UI dashboard
+streamlit==1.31.1
+
+# FastAPI dependency
+pydantic==2.6.1
+
+# LLM token handling (needed sometimes)
+tiktoken==0.6.0
