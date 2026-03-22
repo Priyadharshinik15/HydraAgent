@@ -2,10 +2,11 @@
 
 # 💧 HydraAgent
 
-### Agentic AI for Smart Hydration Monitoring 
+### Agentic AI for Smart Hydration Monitoring 🏆
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![Groq](https://img.shields.io/badge/Groq-LLaMA_3.1-F55036?style=for-the-badge&logo=groq&logoColor=white)](https://groq.com)
 [![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
@@ -31,30 +32,29 @@ Most hydration apps just **store numbers**.
 HydraAgent does something fundamentally different — it runs an **AI agent loop**:
 
 ```
-
 ╔══════════════════════════════════════════════════════════════╗
 ║                    🤖 HydraAgent Loop                        ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║   👤 User logs water intake                                 ║
+║   👤 User logs intake on Streamlit Dashboard                 ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   📡 PERCEIVE — Agent receives user_id and intake_ml        ║
+║   📡 PERCEIVE — Agent receives intake_ml + user_id          ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   🧠 REASON  — LLaMA 3.1 analyzes hydration context         ║
-║         │      • How much water has been consumed?           ║
+║   🧠 REASON  — LLaMA 3.1 reasons over hydration context     ║
+║         │      • How much has been consumed?                 ║
 ║         │      • Is the daily goal being met?                ║
-║         │      • What is the next best action?               ║
+║         │      • What is the best next action?               ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   ⚡ ACT     — Agent provides personalized guidance          ║
+║   ⚡ ACT     — Agent responds with personalized guidance     ║
 ║         │      • Hydration status assessment                 ║
 ║         │      • Actionable next steps                       ║
 ║         │      • Health-aware suggestions                    ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   💾 MEMORY  — SQLite stores intake history for context      ║
+║   💾 MEMORY  — SQLite stores history for future context      ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
@@ -68,37 +68,38 @@ This **Perception → Reasoning → Action → Memory** loop is the foundation o
 | Feature | Description |
 |---------|-------------|
 | 🤖 **Autonomous AI Agent** | `WaterIntakeAgent` powered by LLaMA 3.1 8B via Groq |
-| 📊 **Live Dashboard** | Beautiful real-time UI with wave animations & bar charts |
+| 🎨 **Streamlit Dashboard** | Beautiful real-time UI with Plotly charts & gauge |
 | 📅 **Week / Month / Year** | Full historical hydration tracking across all time ranges |
 | ⚡ **Instant AI Analysis** | Real-time agent feedback on every intake log |
 | 💾 **Persistent Memory** | SQLite stores full history — agent context grows over time |
-| 🎯 **Smart Goal Tracking** | Daily 2,500ml goal with streak detection |
-| 🔒 **Secure by Design** | API keys in `.env`, never committed to version control |
+| 🎯 **Smart Goal Tracking** | Daily 2,500ml goal with streak & summary stats |
+| 🔒 **Secure by Design** | API keys in `.env`, CORS configured, never committed |
+| ⬇️ **CSV Export** | Download full intake history as CSV |
 
 ---
 
 ## 🏗 Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      HydraAgent System                  │
-│                                                         │
-│  ┌──────────┐    ┌──────────────┐    ┌───────────────┐  │
-│  │ Frontend │───▶│   FastAPI    │───▶│ WaterIntake  │  │
-│  │Dashboard │    │   api.py     │    │   Agent 🤖    │  │
-│  │  (.html) │◀───│              │◀───│  (agent.py)  │  │
-│  └──────────┘    └──────┬───────┘    └───────┬───────┘  │
-│                         │                    │          │
-│                  ┌──────▼───────┐    ┌───────▼───────┐  │
-│                  │   SQLite DB  │    │  Groq API     │  │
-│                  │ database.py  │    │ LLaMA 3.1 8B  │  │
-│                  │ (memory)     │    │ (reasoning)   │  │
-│                  └──────────────┘    └───────────────┘  │
-│                                                         │
-│                  ┌──────────────┐                       │
-│                  │  logger.py   │  (observability)      │
-│                  └──────────────┘                       │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        HydraAgent System                         │
+│                                                                 │
+│  ┌─────────────────┐    ┌──────────────┐    ┌───────────────┐  │
+│  │    Streamlit    │    │   FastAPI    │    │ WaterIntake   │  │
+│  │   dashboard.py  │───▶│   api.py     │───▶│   Agent 🤖    │  │
+│  │  (port 8501)    │◀───│  (port 8000) │◀───│  (agent.py)   │  │
+│  └─────────────────┘    └──────┬───────┘    └───────┬───────┘  │
+│         │  Plotly                │                   │           │
+│         │  Charts          ┌────▼──────┐    ┌───────▼───────┐  │
+│         │  Gauge           │  SQLite   │    │   Groq API    │  │
+│         │  Bar Chart       │database.py│    │ LLaMA 3.1 8B  │  │
+│         │                  │ (memory)  │    │ (reasoning)   │  │
+│         │                  └───────────┘    └───────────────┘  │
+│         │                                                        │
+│         │                  ┌───────────┐                        │
+│         └─────────────────▶│ logger.py │  (observability)      │
+│                             └───────────┘                        │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -108,13 +109,13 @@ This **Perception → Reasoning → Action → Memory** loop is the foundation o
 ```
 HydraAgent/
 ├── src/
-│   ├── 🤖 agent.py                       # Core AI agent — WaterIntakeAgent
-│   ├── 🌐 api.py                         # FastAPI — routes & agent orchestration
-│   ├── 🗄  database.py                   # SQLite — agent memory & history
-│   ├── 📋 logger.py                      # Structured logging & observability
-│   ├── 🎨 water_tracker_dashboard.html   # Live frontend dashboard
-│   └── 📄 app.log                        # Agent activity logs
-├── .env                                  # 🔐 Secret keys (NEVER commit)
+│   ├── 🤖 agent.py          # Core AI agent — WaterIntakeAgent
+│   ├── 🌐 api.py            # FastAPI — routes, CORS & agent orchestration
+│   ├── 🗄  database.py      # SQLite — agent memory & history
+│   ├── 📋 logger.py         # Structured logging & observability
+│   ├── 🎨 dashboard.py      # Streamlit — live frontend dashboard
+│   └── 📄 app.log           # Agent activity logs
+├── .env                     # 🔐 Secret keys (NEVER commit)
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -130,8 +131,8 @@ HydraAgent/
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/hydra-agent.git
-cd hydra-agent
+git clone https://github.com/Priyadharshinik15/HydraAgent.git
+cd HydraAgent
 ```
 
 ### 2. Install dependencies
@@ -145,15 +146,24 @@ pip install -r requirements.txt
 echo "GROQ_API_KEY=your_groq_api_key_here" > .env
 ```
 
-### 4. Start HydraAgent
+### 4. Start the FastAPI backend
 ```bash
 cd src
 uvicorn api:app --reload
+# Running at http://localhost:8000
 ```
 
-### 5. Open the dashboard
+### 5. Start the Streamlit dashboard
+```bash
+# Open a new terminal
+cd src
+streamlit run dashboard.py
+# Running at http://localhost:8501
 ```
-http://localhost:8000
+
+### 6. Open the dashboard
+```
+http://localhost:8501
 ```
 
 ---
@@ -183,18 +193,45 @@ curl -X POST http://localhost:8000/log-intake \
 curl http://localhost:8000/history/user_01
 ```
 
+### `GET /` — API health check
+```bash
+curl http://localhost:8000/
+# {"app": "HydraAgent", "status": "running", "message": "Open Streamlit dashboard at http://localhost:8501"}
+```
+
 ---
 
 ## 🛠 Tech Stack
 
 | Layer | Technology | Role |
 |-------|-----------|------|
+| 🎨 **Frontend** | Streamlit + Plotly | Live dashboard & visualizations |
 | 🤖 **AI Agent** | LLaMA 3.1 8B (Groq) | Reasoning & decision-making |
-| 🌐 **Backend** | FastAPI + Python 3.10+ | Agent orchestration & API |
+| 🌐 **Backend** | FastAPI + Python 3.10+ | Agent orchestration & REST API |
 | 🗄 **Memory** | SQLite | Persistent agent history |
-| 🎨 **Frontend** | HTML / CSS / JS | Real-time dashboard |
 | 📋 **Observability** | Python logging | Agent activity tracking |
-| 🔐 **Security** | python-dotenv | Secret management |
+| 🔐 **Security** | python-dotenv + CORS | Secret management |
+
+---
+
+## 📦 Requirements
+
+```
+fastapi
+uvicorn
+python-dotenv
+openai
+streamlit
+plotly
+pandas
+requests
+fastapi[all]
+```
+
+Install all at once:
+```bash
+pip install -r requirements.txt
+```
 
 ---
 
@@ -226,6 +263,7 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 - **Never commit your `.env` file** — it is blocked by `.gitignore`
 - Rotate your Groq API key if accidentally exposed
 - Database files (`*.db`) are excluded from version control
+- CORS is configured to only allow Streamlit origin
 
 ---
 
@@ -237,8 +275,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 <div align="center">
 
-**Built with 💧 + 🤖 — HydraAgent**
+**Built with 💧 + 🤖 + Streamlit — HydraAgent**
 
 *Agentic AI for Smart Hydration Monitoring*
+
+⭐ Star this repo if you found it helpful!
 
 </div>
