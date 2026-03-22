@@ -39,10 +39,10 @@ HydraAgent does something fundamentally different — it runs an **AI agent loop
 ║   👤 User logs intake on Streamlit Dashboard                 ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   📡 PERCEIVE — Agent receives intake_ml + user_id          ║
+║   📡 PERCEIVE — Agent receives intake_ml + user_id           ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   🧠 REASON  — LLaMA 3.1 reasons over hydration context     ║
+║   🧠 REASON  — LLaMA 3.1 reasons over hydration context      ║
 ║         │      • How much has been consumed?                 ║
 ║         │      • Is the daily goal being met?                ║
 ║         │      • What is the best next action?               ║
@@ -86,8 +86,8 @@ This **Perception → Reasoning → Action → Memory** loop is the foundation o
 │                                                                 │
 │  ┌─────────────────┐    ┌──────────────┐    ┌───────────────┐   │
 │  │    Streamlit    │    │   FastAPI    │    │ WaterIntake   │   │
-│  │   dashboard.py  │───▶│   api.py     │───▶│   Agent 🤖  │  │
-│  │  (port 8501)    │◀───│  (port 8000) │◀───│  (agent.py)  │  │
+│  │   dashboard.py  │───▶│   api.py     │───▶│   Agent 🤖  │   │
+│  │  (port 8501)    │◀───│  (port 8000) │◀───│  (agent.py)  │   │
 │  └─────────────────┘    └──────┬───────┘    └───────┬───────┘   │
 │         │  Plotly                │                   │          │
 │         │  Charts          ┌────▼──────┐    ┌───────▼───────┐   │
