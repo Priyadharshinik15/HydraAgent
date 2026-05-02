@@ -242,19 +242,7 @@ pip install -r requirements.txt
 - [ ] 🧩 **Multi-agent system** — Separate specialized agents for analysis, coaching & alerts
 - [ ] 📈 **Predictive reasoning** — Agent forecasts end-of-day hydration based on current pace
 - [ ] 🌡 **Context-aware agent** — Adjusts goals based on weather, activity & health data
-- [ ] 💬 **Conversational agent** — Chat directly with HydraAgent for hydration advice
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+- [ ] 💬 **Conversational agent** — Chat directly with HydraAgent for hydration advic
 
 ---
 
