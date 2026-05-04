@@ -19,35 +19,35 @@
 
 ---
 
-## 🌟 What Makes HydraAgent "Agentic"?
+## What Makes HydraAgent "Agentic"?
 
 Most hydration apps just **store numbers**.
 HydraAgent does something fundamentally different — it runs an **AI agent loop**:
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║                    🤖 HydraAgent Loop                        ║
+║                     HydraAgent Loop                        ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║   👤 User logs intake on Streamlit Dashboard                 ║
+║    User logs intake on Streamlit Dashboard                 ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   📡 PERCEIVE — Agent receives intake_ml + user_id           ║
+║    PERCEIVE — Agent receives intake_ml + user_id           ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   🧠 REASON  — LLaMA 3.1 reasons over hydration context      ║
+║    REASON  — LLaMA 3.1 reasons over hydration context      ║
 ║         │      • How much has been consumed?                 ║
 ║         │      • Is the daily goal being met?                ║
 ║         │      • What is the best next action?               ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   ⚡ ACT     — Agent responds with personalized guidance     ║
+║   ACT     — Agent responds with personalized guidance     ║
 ║         │      • Hydration status assessment                 ║
 ║         │      • Actionable next steps                       ║
 ║         │      • Health-aware suggestions                    ║
 ║         │                                                    ║
 ║         ▼                                                    ║
-║   💾 MEMORY  — SQLite stores history for future context      ║
+║    MEMORY  — SQLite stores history for future context      ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
@@ -56,22 +56,22 @@ This **Perception → Reasoning → Action → Memory** loop is the foundation o
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 | Feature | Description |
 |---------|-------------|
-| 🤖 **Autonomous AI Agent** | `WaterIntakeAgent` powered by LLaMA 3.1 8B via Groq |
-| 🎨 **Streamlit Dashboard** | Beautiful real-time UI with Plotly charts & gauge |
-| 📅 **Week / Month / Year** | Full historical hydration tracking across all time ranges |
-| ⚡ **Instant AI Analysis** | Real-time agent feedback on every intake log |
-| 💾 **Persistent Memory** | SQLite stores full history — agent context grows over time |
-| 🎯 **Smart Goal Tracking** | Daily 2,500ml goal with streak & summary stats |
-| 🔒 **Secure by Design** | API keys in `.env`, CORS configured, never committed |
-| ⬇️ **CSV Export** | Download full intake history as CSV |
+|  **Autonomous AI Agent** | `WaterIntakeAgent` powered by LLaMA 3.1 8B via Groq |
+|  **Streamlit Dashboard** | Beautiful real-time UI with Plotly charts & gauge |
+|  **Week / Month / Year** | Full historical hydration tracking across all time ranges |
+|  **Instant AI Analysis** | Real-time agent feedback on every intake log |
+|  **Persistent Memory** | SQLite stores full history — agent context grows over time |
+|  **Smart Goal Tracking** | Daily 2,500ml goal with streak & summary stats |
+|  **Secure by Design** | API keys in `.env`, CORS configured, never committed |
+|  **CSV Export** | Download full intake history as CSV |
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -97,18 +97,18 @@ This **Perception → Reasoning → Action → Memory** loop is the foundation o
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 HydraAgent/
 ├── src/
-│   ├── 🤖 agent.py          # Core AI agent — WaterIntakeAgent
-│   ├── 🌐 api.py            # FastAPI — routes, CORS & agent orchestration
-│   ├── 🗄  database.py      # SQLite — agent memory & history
-│   ├── 📋 logger.py         # Structured logging & observability
-│   ├── 🎨 dashboard.py      # Streamlit — live frontend dashboard
-│   └── 📄 app.log           # Agent activity logs
-├── .env                     # 🔐 Secret keys (NEVER commit)
+│   ├──  agent.py          # Core AI agent — WaterIntakeAgent
+│   ├──  api.py            # FastAPI — routes, CORS & agent orchestration
+│   ├──   database.py      # SQLite — agent memory & history
+│   ├──  logger.py         # Structured logging & observability
+│   ├──  dashboard.py      # Streamlit — live frontend dashboard
+│   └──  app.log           # Agent activity logs
+├── .env                     #  Secret keys (NEVER commit)
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -161,7 +161,7 @@ http://localhost:8501
 
 ---
 
-## 🚀 API Reference
+##  API Reference
 
 ### `POST /log-intake` — Trigger the agent
 ```bash
@@ -198,16 +198,16 @@ curl http://localhost:8000/
 
 | Layer | Technology | Role |
 |-------|-----------|------|
-| 🎨 **Frontend** | Streamlit + Plotly | Live dashboard & visualizations |
-| 🤖 **AI Agent** | LLaMA 3.1 8B (Groq) | Reasoning & decision-making |
-| 🌐 **Backend** | FastAPI + Python 3.10+ | Agent orchestration & REST API |
-| 🗄 **Memory** | SQLite | Persistent agent history |
-| 📋 **Observability** | Python logging | Agent activity tracking |
-| 🔐 **Security** | python-dotenv + CORS | Secret management |
+| **Frontend** | Streamlit + Plotly | Live dashboard & visualizations |
+| **AI Agent** | LLaMA 3.1 8B (Groq) | Reasoning & decision-making |
+| **Backend** | FastAPI + Python 3.10+ | Agent orchestration & REST API |
+| **Memory** | SQLite | Persistent agent history |
+| **Observability** | Python logging | Agent activity tracking |
+| **Security** | python-dotenv + CORS | Secret management |
 
 ---
 
-## 📦 Requirements
+##  Requirements
 
 ```
 fastapi
@@ -228,38 +228,23 @@ pip install -r requirements.txt
 
 ---
 
-## 🔮 Roadmap — Future Agentic Capabilities
+## Roadmap — Future Agentic Capabilities
 
-- [ ] 🔄 **Multi-turn memory** — Agent remembers and references past week's patterns
-- [ ] 📅 **Proactive agent** — Scheduled reminders triggered autonomously by the agent
-- [ ] 🧩 **Multi-agent system** — Separate specialized agents for analysis, coaching & alerts
-- [ ] 📈 **Predictive reasoning** — Agent forecasts end-of-day hydration based on current pace
-- [ ] 🌡 **Context-aware agent** — Adjusts goals based on weather, activity & health data
-- [ ] 💬 **Conversational agent** — Chat directly with HydraAgent for hydration advic
+- [ ] **Multi-turn memory** — Agent remembers and references past week's patterns
+- [ ] **Proactive agent** — Scheduled reminders triggered autonomously by the agent
+- [ ] **Multi-agent system** — Separate specialized agents for analysis, coaching & alerts
+- [ ] **Predictive reasoning** — Agent forecasts end-of-day hydration based on current pace
+- [ ] **Context-aware agent** — Adjusts goals based on weather, activity & health data
+- [ ] **Conversational agent** — Chat directly with HydraAgent for hydration advic
 
 ---
 
-## 🔒 Security
+## Security
 
 - **Never commit your `.env` file** — it is blocked by `.gitignore`
 - Rotate your Groq API key if accidentally exposed
 - Database files (`*.db`) are excluded from version control
 - CORS is configured to only allow Streamlit origin
 
----
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
-
-<div align="center">
-
-**Built with 💧 + 🤖 + Streamlit — HydraAgent**
-
-*Agentic AI for Smart Hydration Monitoring*
-
-⭐ Star this repo if you found it helpful!
-
-</div>
