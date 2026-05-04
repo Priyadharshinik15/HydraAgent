@@ -14,7 +14,6 @@
 
 <br/>
 
-![HydraAgent Banner](https://img.shields.io/badge/🤖_Agentic_AI-Perception_→_Reasoning_→_Action-0d6efd?style=for-the-badge)
 
 </div>
 
